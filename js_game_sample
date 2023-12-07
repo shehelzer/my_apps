@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tic Tac Toe</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+
+        .win-line {
+            stroke: #00f;
+            stroke-width: 5;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="ticTacToeCanvas" width="300" height="300"></canvas>
+
+    <script>
+        const canvas = document.getElementById('ticTacToeCanvas');
+        const ctx = canvas.getContext('2d');
+        const cellSize = 100;
+        const board = [
+            ['', '', ''],
+            ['', '', ''],
+            ['', '', '']
+        ];
+        let currentPlayer = 'X';
+        let lastMove = { row: -1, col: -1 };
+        let gameOver = false;
+
+        canvas.addEventListener('click', handleCanvasClick);
+
+        function handleCanvasClick(event) {
+            if (gameOver) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((event.clientX - rect.left) / cellSize);
+            const y = Math.floor((event.clientY - rect.top) / cellSize);
+
+            if (board[y][x] === '') {
+                board[y][x] = currentPlayer;
+                lastMove = { row: y, col: x };
+                drawBoard();
+                checkWinner();
+                switchPlayer();
+            }
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 1; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * cellSize, 0);
+                ctx.lineTo(i * cellSize, canvas.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, i * cellSize);
+                ctx.lineTo(canvas.width, i * cellSize);
+                ctx.stroke();
+            }
+
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    drawSymbol(board[row][col], col * cellSize + cellSize / 2, row * cellSize + cellSize / 2);
+                }
+            }
+
+            // Подсветим последний ход
+            if (lastMove.row !== -1 && lastMove.col !== -1) {
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                ctx.fillRect(lastMove.col * cellSize, lastMove.row * cellSize, cellSize, cellSize);
+            }
+        }
+
+        function drawSymbol(symbol, x, y) {
+            ctx.font = '40px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            if (symbol === 'X') {
+                ctx.fillStyle = 'blue';
+            } else if (symbol === 'O') {
+                ctx.fillStyle = 'red';
+            }
+
+            ctx.fillText(symbol, x, y);
+        }
+
+        function switchPlayer() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        }
+
+        function checkWinner() {
+            for (let i = 0; i < 3; i++) {
+                // Проверка по строкам и столбцам
+                if (
+                    (board[i][0] === currentPlayer && board[i][1] === currentPlayer && board[i][2] === currentPlayer) ||
+                    (board[0][i] === currentPlayer && board[1][i] === currentPlayer && board[2][i] === currentPlayer)
+                ) {
+                    announceWinner();
+                    return;
+                }
+            }
+
+            // Проверка по диагоналям
+            if (
+                (board[0][0] === currentPlayer && board[1][1] === currentPlayer && board[2][2] === currentPlayer) ||
+                (board[0][2] === currentPlayer && board[1][1] === currentPlayer && board[2][0] === currentPlayer)
+            ) {
+                announceWinner();
+                return;
+            }
+
+            // Проверка на ничью
+            if (board.flat().every(cell => cell !== '')) {
+                announceTie();
+                return;
+            }
+        }
+
+        function announceWinner() {
+            alert(`Player ${currentPlayer} wins!`);
+            resetGame();
+        }
+
+        function announceTie() {
+            alert('It\'s a tie!');
+            resetGame();
+        }
+
+        function resetGame() {
+            board.forEach(row => row.fill(''));
+            currentPlayer = 'X';
+            gameOver = false;
+            drawBoard();
+        }
+
+        drawBoard();
+    </script>
+</body>
+</html>
